@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "boltshaker-user",
+    "slug": "boltshaker-user",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/BoltShakerLogo.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/BoltShakerLogo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/BoltShakerLogo.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/BoltShakerLogo.png"
+    },
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
+        }
+      ]
+    ]
+    
+  }
+}
