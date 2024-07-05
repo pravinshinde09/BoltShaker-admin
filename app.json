@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "boltshaker-user",
-    "slug": "boltshaker-user",
+    "name": "boltshaker-admin",
+    "slug": "boltshaker-admin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/BoltShakerLogo.png",

@@ -45,7 +45,7 @@ const HomeScreen = () => {
         <ScrollView showsVerticalScrollIndicator={false}>
           <OffersCarousel images={OFFERS} />
           <View style={{padding:10}}>
-            <Button onPress={() => navigation.navigate('CreateShake' as never)} children={'crate Shake'} />
+            <Button onPress={() => navigation.navigate('CreateShake' as never)} children={'Create Shake'} />
           </View>
           <ShakeList />
         </ScrollView>

@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Alert, StyleSheet, FlatList, Text, Image } from 'react-native';
+import { View, TextInput, Button, Alert, StyleSheet, FlatList, Text, Image, ScrollView } from 'react-native';
 import { createProduct, listProducts } from '../appwriteDB/appWriteService';
 import { account, storage } from '../appwrite/appWriteConfig';
 import * as ImagePicker from 'expo-image-picker';
 import { Models } from 'appwrite';
+import { useLanguage } from '../context/LocalizationContext';
 
 const bucketId = "6673cba400009f844021";
 
-const CreateShake = () => {
-  const [title, setTitle] = useState('');
-  const [details, setDetails] = useState('');
+const CreateProductScreen = () => {
+  const [title, setTitle] = useState({ en: '', fr: '', pl: '', de: '' });
+  const [details, setDetails] = useState({ en: '', fr: '', pl: '', de: '' });
   const [price, setPrice] = useState('');
   const [userId, setUserId] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [products, setProducts] = useState<Models.Document[]>([]); 
+  const [products, setProducts] = useState<Models.Document[]>([]);
+  const { locale } = useLanguage();
 
   useEffect(() => {
     (async () => {
@@ -54,7 +56,6 @@ const CreateShake = () => {
       const file = new File([blob], fileName, { type: blob.type });
 
       const uploadResponse = await storage.createFile(bucketId, 'unique()', file);
-      console.log("uploadResp:",uploadResponse)
       const fileUrl = storage.getFileView(bucketId, uploadResponse.$id);
 
       return fileUrl.href;
@@ -75,15 +76,27 @@ const CreateShake = () => {
     if (imageUri) {
       imageUrl = await handleImageUpload(imageUri);
     }
-    console.log('//imageUrl:',imageUrl)
 
-    const product = { title, details, price: parsedPrice, userId, imageUrl };
+    const product = {
+      title_en: title.en,
+      title_fr: title.fr,
+      title_pl: title.pl,
+      title_de: title.de,
+      details_en: details.en,
+      details_fr: details.fr,
+      details_pl: details.pl,
+      details_de: details.de,
+      price: parsedPrice,
+      userId,
+      imageUrl,
+    };
+  
     try {
       const response = await createProduct(product);
       if (response) {
         Alert.alert('Product created successfully');
-        setTitle('');
-        setDetails('');
+        setTitle({ en: '', fr: '', pl: '', de: '' });
+        setDetails({ en: '', fr: '', pl: '', de: '' });
         setPrice('');
         setImageUri(null);
         fetchProducts(userId);
@@ -123,9 +136,17 @@ const CreateShake = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <TextInput placeholder="Name" value={title} onChangeText={setTitle} style={styles.input} />
-      <TextInput placeholder="Description" value={details} onChangeText={setDetails} style={styles.input} />
+    <ScrollView style={styles.container}>
+      <TextInput placeholder="Name (English)" value={title.en} onChangeText={(text) => setTitle(prev => ({ ...prev, en: text }))} style={styles.input} />
+      <TextInput placeholder="Name (French)" value={title.fr} onChangeText={(text) => setTitle(prev => ({ ...prev, fr: text }))} style={styles.input} />
+      <TextInput placeholder="Name (Polish)" value={title.pl} onChangeText={(text) => setTitle(prev => ({ ...prev, pl: text }))} style={styles.input} />
+      <TextInput placeholder="Name (German)" value={title.de} onChangeText={(text) => setTitle(prev => ({ ...prev, de: text }))} style={styles.input} />
+
+      <TextInput placeholder="Description (English)" value={details.en} onChangeText={(text) => setDetails(prev => ({ ...prev, en: text }))} style={styles.input} />
+      <TextInput placeholder="Description (French)" value={details.fr} onChangeText={(text) => setDetails(prev => ({ ...prev, fr: text }))} style={styles.input} />
+      <TextInput placeholder="Description (Polish)" value={details.pl} onChangeText={(text) => setDetails(prev => ({ ...prev, pl: text }))} style={styles.input} />
+      <TextInput placeholder="Description (German)" value={details.de} onChangeText={(text) => setDetails(prev => ({ ...prev, de: text }))} style={styles.input} />
+
       <TextInput placeholder="Price" value={price} onChangeText={setPrice} style={styles.input} keyboardType="numeric" />
       <Button title="Pick Image" onPress={handleImagePick} />
       {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
@@ -135,21 +156,20 @@ const CreateShake = () => {
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => (
           <View style={styles.productItem}>
-            <Text style={styles.productTitle}>{item.title}</Text>
-            <Text>{item.details}</Text>
+            <Text style={styles.productTitle}>{item[`title_${locale}`]} </Text>
+            <Text>{item[`details_${locale}`]}</Text>
             <Text>${item.price}</Text>
             {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.image} />}
           </View>
         )}
       />
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     padding: 16,
   },
   input: {
@@ -175,117 +195,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CreateShake;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState } from 'react';
-// import { View, Text, Button, Image, StyleSheet } from 'react-native';
-// import * as ImagePicker from 'expo-image-picker';
-// import { Client, Storage } from 'appwrite';
-
-// const App = () => {
-//   const [selectedImage, setSelectedImage] = useState('');
-
-//   const client = new Client();
-//   client
-//     .setEndpoint(process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!) 
-//     .setProject(process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!); 
-
-//   const storage = new Storage(client);
-
-//   const pickImage = async () => {
-//     let result = await ImagePicker.launchImageLibraryAsync({
-//       mediaTypes: ImagePicker.MediaTypeOptions.All,
-//       allowsEditing: true,
-//       aspect: [4, 3],
-//       quality: 1,
-//     });
-
-//     console.log(result);
-
-//     if (!result.canceled) {
-//       setSelectedImage(result.assets[0].uri);
-//     }
-//   };
-
-//   const uploadImage = async () => {
-//     if (selectedImage) {
-//       try {
-//         const fileUri = selectedImage;
-//         const fileName = fileUri.split('/').pop();
-
-//         const formData = new FormData();
-//         formData.append('file', {
-//           uri: fileUri,
-//           name: fileName,
-//           type: 'image/jpeg', 
-//         });
-
-//         const response = await storage.createFile(
-//           '6673cba400009f844021', 
-//           'unique()', 
-//           formData
-//         );
-
-//         console.log('File uploaded successfully:', response);
-//       } catch (error) {
-//         console.error('File upload failed:', error);
-//       }
-//     }
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>Upload Image to AppWrite Storage</Text>
-//       <Button title="Pick an image from camera roll" onPress={pickImage} />
-//       {selectedImage && (
-//         <View style={styles.imageContainer}>
-//           <Image source={{ uri: selectedImage }} style={styles.image} />
-//         </View>
-//       )}
-//       <Button title="Upload Image" onPress={uploadImage} disabled={!selectedImage} />
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     padding: 20,
-//   },
-//   title: {
-//     fontSize: 20,
-//     fontWeight: 'bold',
-//     marginBottom: 20,
-//   },
-//   imageContainer: {
-//     marginTop: 20,
-//     marginBottom: 20,
-//     alignItems: 'center',
-//   },
-//   image: {
-//     width: 300,
-//     height: 300,
-//     resizeMode: 'contain',
-//   },
-// });
-
-// export default App;
+export default CreateProductScreen;
