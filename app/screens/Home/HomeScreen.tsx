@@ -12,6 +12,7 @@ import Input from "../../components/TextInput";
 import { useShakesContext } from "../../context/ShakeContext";
 import ShakeList from "../../components/ShakeList";
 import Button from "../../components/Button";
+import DisplayShakes from "../../components/displayShake";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -47,7 +48,8 @@ const HomeScreen = () => {
           <View style={{padding:10}}>
             <Button onPress={() => navigation.navigate('CreateShake' as never)} children={'Create Shake'} />
           </View>
-          <ShakeList />
+          {/* <ShakeList /> */}
+          <DisplayShakes/>
         </ScrollView>
       </View>
     </SafeAreaView>

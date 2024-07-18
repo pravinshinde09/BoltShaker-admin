@@ -15,6 +15,7 @@ import { Platform } from "react-native";
 import { RADIUS } from "../theme";
 import MyQRCode from "../components/MyQRCode";
 import CreateShake from "../components/CreateShake";
+import EditProductScreen from "../components/EditShake";
 
 export type HomeStackParamList = {
   Home: undefined;
@@ -44,6 +45,10 @@ export type HomeStackParamList = {
     selectedAddOns: Record<string, any>
   };
   CreateShake: undefined;
+  EditProductScreen: {
+    productId:string
+  }
+
 };
 
 const Stack = createStackNavigator<HomeStackParamList>();
@@ -124,6 +129,10 @@ const HomeScreenNavigation = () => {
       <Stack.Screen
         name="CreateShake"
         component={CreateShake}
+      />
+       <Stack.Screen
+        name="EditProductScreen"
+        component={EditProductScreen}
       />
     </Stack.Navigator>
   );

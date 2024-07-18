@@ -41,9 +41,14 @@ export const uploadImage = async (pickerResult: any) => {
 };
 
 export const deleteImage = async (deleteToken: string) => {
-  const response = await fetch(`${DELETE_TOKEN}/${deleteToken}`, {
-    method: 'DELETE',
-  });
+  const response = await fetch(DELETE_TOKEN, {
+    method: 'POST',
+    body: JSON.stringify({ token: deleteToken }),
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+  console.log('respo:', response)
 
   if (!response.ok) {
     throw new Error('Delete failed');

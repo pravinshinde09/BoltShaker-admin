@@ -8,9 +8,9 @@ const client = new Client()
 const databases = new Databases(client);
 
 const databaseId = APPWRITE_DATABASE_ID;
-const productsCollectionId = '66853fac003decb9c180'; // Replace with your products collection ID
-const nutritionalDetailsCollectionId = '668e237f001e5af0c3c6'; // Replace with your nutritional details collection ID
-const bucketId = '6673cba400009f844021'; // Replace with your AppWrite bucket ID if needed
+const productsCollectionId = '66853fac003decb9c180'; 
+const nutritionalDetailsCollectionId = '668e237f001e5af0c3c6'; 
+const bucketId = '6673cba400009f844021'; 
 
 export const createProduct = async (product: any) => {
   try {
@@ -68,9 +68,11 @@ export const createNutritionalDetails = async (detailsData: any) => {
   try {
     const response = await databases.createDocument(databaseId, nutritionalDetailsCollectionId, 'unique()', {
       size: detailsData.size || '',
-      color: detailsData.color || '',
-      salt: detailsData.salt || '',
+      calories: detailsData.calories || '',
+      fat: detailsData.fat || '',
+      carbs: detailsData.carbs || '',
       proteins: detailsData.proteins || '',
+      salt: detailsData.salt || '',
     });
     return response;
   } catch (error) {
@@ -89,3 +91,23 @@ export const getNutritionalDetailsById = async (detailsId: string) => {
     throw error;
   }
 };
+
+export const updateNutritionalDetails = async (detailsId: string , updatedData: any) => {
+  try{
+    const response = await databases.updateDocument(databaseId, nutritionalDetailsCollectionId, detailsId, updatedData)
+    return response;
+  } catch (error) {
+    console.error('Error updating nutritional details:', error);
+    throw error;
+  }
+};
+
+export const deleteNutritionalDetails = async (detailsId: string) => {
+  try {
+    const response = await databases.deleteDocument(databaseId, nutritionalDetailsCollectionId, detailsId)
+    return response;
+  } catch (error) {
+    console.log('Error delete nutritional details:', error);
+    throw error;
+  }
+}

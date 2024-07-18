@@ -7,6 +7,7 @@ import { LanguageContextProvider } from "./app/context/LocalizationContext";
 import { AppLockProvider } from "./app/context/ScreenLockContext";
 import { CurrencyProvider } from "./app/context/CurrencyProvider";
 import { ShakeProvider } from "./app/context/ShakeContext";
+import ShakesProvider1 from "./app/context/ShakeContext1";
 
 export default function App() {
   return (
@@ -17,7 +18,9 @@ export default function App() {
             <ThemeProvider>
               <AppwriteContextProvider>
                 <ShakeProvider>
+                  <ShakesProvider1>
                   <Router />
+                  </ShakesProvider1>
                 </ShakeProvider>
               </AppwriteContextProvider>
             </ThemeProvider>

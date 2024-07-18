@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Alert, StyleSheet, FlatList, Text, Image, ScrollView, Switch } from 'react-native';
-import { createProduct, listProducts, createNutritionalDetails, getNutritionalDetailsById } from '../appwriteDB/appWriteService';
-import { account } from '../appwrite/appWriteConfig';
+import { View, TextInput, Button, Alert, StyleSheet, ScrollView, Image, Switch, Text } from 'react-native';
+import { updateProduct, getProduct, updateNutritionalDetails, getNutritionalDetailsById } from '../appwriteDB/appWriteService';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { Models } from 'appwrite';
-import { useLanguage } from '../context/LocalizationContext';
-import { uploadImage } from './CloudinaryService';
+import { deleteImage, uploadImage } from './CloudinaryService';
 
 type NutritionalDetails = {
   size: string;
   calories: string;
   fat: string;
-  carbs : string;
+  carbs: string;
   salt: string;
   proteins: string;
 };
 
-const CreateProductScreen = () => {
+type EditProductScreenRouteProp = RouteProp<{ params: { productId: string } }, 'params'>;
+
+const EditProductScreen = () => {
+  const route = useRoute<EditProductScreenRouteProp>();
+  const productId = route.params.productId;
   const [title, setTitle] = useState({ en: '', fr: '', pl: '', de: '' });
   const [details, setDetails] = useState({ en: '', fr: '', pl: '', de: '' });
   const [price, setPrice] = useState({ USD: '', INR: '', EUR: '' });
-  const [userId, setUserId] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [deleteToken, setDeleteToken] = useState<string | null>(null);
-  const [products, setProducts] = useState<Models.Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const { locale } = useLanguage();
   const [nutritionalDetails, setNutritionalDetails] = useState<NutritionalDetails>({
     size: '',
     calories: '',
@@ -35,16 +34,49 @@ const CreateProductScreen = () => {
     salt: '',
   });
   const [isOutOfStock, setIsOutOfStock] = useState(false);
-  const [nutritionalDetailsMap, setNutritionalDetailsMap] = useState<{ [key: string]: NutritionalDetails }>({});
+  const [nutritionalDetailsId, setNutritionalDetailsId] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission denied', 'Sorry, we need camera roll permissions to make this work!');
+    const fetchProductDetails = async () => {
+      try {
+        const product = await getProduct(productId);
+        setTitle({
+          en: product.title_en,
+          fr: product.title_fr,
+          pl: product.title_pl,
+          de: product.title_de,
+        });
+        setDetails({
+          en: product.details_en,
+          fr: product.details_fr,
+          pl: product.details_pl,
+          de: product.details_de,
+        });
+        setPrice({
+          USD: product.price_USD.toString(),
+          INR: product.price_INR.toString(),
+          EUR: product.price_EUR.toString(),
+        });
+        setImageUri(product.imageUrl);
+        setIsOutOfStock(product.isOutOfStock);
+        setDeleteToken(product.deleteToken);
+        setNutritionalDetailsId(product.nutritionalDetailsId);
+        const nutritionalDetailsResponse = await getNutritionalDetailsById(product.nutritionalDetailsId);
+        setNutritionalDetails({
+          size: nutritionalDetailsResponse.size,
+          calories: nutritionalDetailsResponse.calories,
+          fat: nutritionalDetailsResponse.fat,
+          carbs: nutritionalDetailsResponse.carbs,
+          proteins: nutritionalDetailsResponse.proteins,
+          salt: nutritionalDetailsResponse.salt,
+        });
+      } catch (error) {
+        console.log('Error fetching product details:', error);
       }
-    })();
-  }, []);
+    };
+
+    fetchProductDetails();
+  }, [productId]);
 
   const selectImage = async () => {
     try {
@@ -75,8 +107,15 @@ const CreateProductScreen = () => {
   const handleImagePick = async (pickerResult: ImagePicker.ImagePickerResult) => {
     if (isUploading) return;
     setIsUploading(true);
-
+    console.log('deleteToken:',deleteToken)
+  
     try {
+      // Delete existing image if deleteToken exists
+      if (deleteToken) {
+        await deleteImage(deleteToken);
+      }
+  
+      // Upload new image
       const data = await uploadImage(pickerResult);
       setImageUri(data.secure_url);
       setDeleteToken(data.delete_token);
@@ -99,11 +138,14 @@ const CreateProductScreen = () => {
     }
 
     try {
-      const detailsResponse = await createNutritionalDetails(nutritionalDetails);
-      const nutritionalDetailsId = detailsResponse.$id;
+      if (nutritionalDetailsId) {
+        await updateNutritionalDetails(nutritionalDetailsId, nutritionalDetails);
+      } else {
+        Alert.alert('Error', 'Nutritional details ID is missing');
+        return;
+      }
 
       const product = {
-        userId,
         title_en: title.en,
         title_fr: title.fr,
         title_pl: title.pl,
@@ -116,97 +158,21 @@ const CreateProductScreen = () => {
         price_INR: parsedPriceINR,
         price_EUR: parsedPriceEUR,
         imageUrl: imageUri,
-        nutritionalDetailsId,
         isOutOfStock,
         deleteToken,
+        nutritionalDetailsId,
       };
 
-      const response = await createProduct(product);
+      const response = await updateProduct(productId, product);
       if (response) {
-        Alert.alert('Product created successfully');
-        setTitle({ en: '', fr: '', pl: '', de: '' });
-        setDetails({ en: '', fr: '', pl: '', de: '' });
-        setPrice({ USD: '', INR: '', EUR: '' });
-        setImageUri(null);
-        setDeleteToken(null);
-        setNutritionalDetails({ size: '', calories: '',fat:'',carbs:'',proteins: '' , salt: '', });
-        setIsOutOfStock(false);
-        fetchProducts(userId);
+        Alert.alert('Product updated successfully');
       } else {
-        Alert.alert('Error creating product');
+        Alert.alert('Error updating product');
       }
     } catch (error) {
-      Alert.alert('Error', `Error creating product: ${(error as Error).message}`);
+      Alert.alert('Error', `Error updating product: ${(error as Error).message}`);
     }
   };
-
-  const fetchNutritionalDetails = async (nutritionalDetailsId: string) => {
-    try {
-      const response = await getNutritionalDetailsById(nutritionalDetailsId);
-      console.log("response:", response)
-      if (response) {
-        const nutritionalDetailsData: NutritionalDetails = {
-          size: response.size || '',
-          calories: response.calories || '',
-          fat: response.fat || '',
-          carbs: response.carbs || '',
-          proteins: response.proteins || '',
-          salt: response.salt || '',
-        };
-        setNutritionalDetails(nutritionalDetailsData);
-      }
-    } catch (error) {
-      console.log('Error fetching Nutritional Details:', error);
-    }
-  };
-
-  console.log('fetchNutritionalDetails:', fetchNutritionalDetails)
-
-  const fetchProducts = async (userId: string) => {
-    try {
-      const response = await listProducts(userId);
-      if (response) {
-        setProducts(response);
-
-        // Fetch nutritional details for each product
-        const detailsMap: { [key: string]: NutritionalDetails } = {};
-        for (const product of response) {
-          if (product.nutritionalDetailsId) {
-            const detailsResponse = await getNutritionalDetailsById(product.nutritionalDetailsId);
-            if (detailsResponse) {
-              detailsMap[product.$id] = {
-                size: detailsResponse.size || '',
-                calories: detailsResponse.calories || '',
-                fat: detailsResponse.fat || '',
-                carbs: detailsResponse.carbs || '',
-                salt: detailsResponse.salt || '',
-                proteins: detailsResponse.proteins || '',
-              };
-            }
-          }
-        }
-        setNutritionalDetailsMap(detailsMap);
-      }
-    } catch (error) {
-      console.log('Error fetching products:', error);
-    }
-  };
-
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const user = await account.get();
-        if (user) {
-          setUserId(user.$id);
-          fetchProducts(user.$id);
-        }
-      } catch (error) {
-        console.log('Error fetching user:', error);
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
 
   return (
     <ScrollView style={styles.container}>
@@ -306,7 +272,6 @@ const CreateProductScreen = () => {
         onChangeText={(text) => setNutritionalDetails(prev => ({ ...prev, carbs: text }))}
         style={styles.input}
       />
-
       <TextInput
         placeholder="Proteins"
         value={nutritionalDetails.proteins}
@@ -330,16 +295,13 @@ const CreateProductScreen = () => {
       <View style={{ marginBottom: 32 }}>
         <Button title="Pick Image" onPress={selectImage} />
         {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
-        <Button title="Create Product" onPress={handleSubmit} />
+        <Button title="Update Product" onPress={handleSubmit} />
       </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  nutritionalDetailsContainer: {
-    marginTop: 8,
-  },
   container: {
     flex: 1,
     padding: 16,
@@ -361,15 +323,6 @@ const styles = StyleSheet.create({
     height: 100,
     marginVertical: 12,
   },
-  productItem: {
-    padding: 16,
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-  },
-  productTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
 });
 
-export default CreateProductScreen;
+export default EditProductScreen;
