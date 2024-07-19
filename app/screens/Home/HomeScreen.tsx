@@ -12,7 +12,7 @@ import Input from "../../components/TextInput";
 import { useShakesContext } from "../../context/ShakeContext";
 import ShakeList from "../../components/ShakeList";
 import Button from "../../components/Button";
-import DisplayShakes from "../../components/displayShake";
+import DisplayShakes from "../../components/DisplayShake";
 
 const HomeScreen = () => {
   const navigation = useNavigation();

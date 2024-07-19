@@ -29,5 +29,14 @@
   "retry_in": "Didn't receive it? Retry in",
   "resend_otp": "Resend OTP",
   "second": "second",
-  "seconds": "seconds"
+  "seconds": "seconds",
+  "shake_details":"Shake Details",
+  "nutrition_facts": "Nutrition Facts",
+  "amount_per_serving":"Amount Per Serving",
+  "serving_size":"Serving Size",
+  "calories" : "Calories",
+  "fat" : "Fat",
+  "carbs":"Carbohydrate",
+  "protein":"Protein",
+  "salt":"Salt"
 }

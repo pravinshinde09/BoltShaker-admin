@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Alert, StyleSheet, FlatList, Text, Image, ScrollView, Switch } from 'react-native';
-import { createProduct, listProducts, createNutritionalDetails, getNutritionalDetailsById } from '../appwriteDB/appWriteService';
-import { account } from '../appwrite/appWriteConfig';
-import * as ImagePicker from 'expo-image-picker';
-import { Models } from 'appwrite';
+import { View, Button, Alert, StyleSheet, ScrollView, Image, Switch, Text } from 'react-native';
+import { createProduct, createNutritionalDetails } from '../appwriteDB/appWriteService';
 import { useLanguage } from '../context/LocalizationContext';
+import * as ImagePicker from 'expo-image-picker';
 import { uploadImage } from './CloudinaryService';
+import Input from './Inputs';
+import NutritionalDetailsForm from './NutritionalDetailsForm';
+import { useShakes } from '../context/ShakeContext1';
 
-type NutritionalDetails = {
-  size: string;
-  calories: string;
-  fat: string;
-  carbs : string;
-  salt: string;
-  proteins: string;
-};
+type Language = 'en' | 'fr' | 'pl' | 'de';
+type Currency = 'USD' | 'INR' | 'EUR';
+
+
 
 const CreateProductScreen = () => {
-  const [title, setTitle] = useState({ en: '', fr: '', pl: '', de: '' });
-  const [details, setDetails] = useState({ en: '', fr: '', pl: '', de: '' });
-  const [price, setPrice] = useState({ USD: '', INR: '', EUR: '' });
-  const [userId, setUserId] = useState('');
+  const { userId } = useShakes();
+  const [title, setTitle] = useState<Record<Language, string>>({ en: '', fr: '', pl: '', de: '' });
+  const [details, setDetails] = useState<Record<Language, string>>({ en: '', fr: '', pl: '', de: '' });
+  const [price, setPrice] = useState<Record<Currency, string>>({ USD: '', INR: '', EUR: '' });
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [deleteToken, setDeleteToken] = useState<string | null>(null);
-  const [products, setProducts] = useState<Models.Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { locale } = useLanguage();
-  const [nutritionalDetails, setNutritionalDetails] = useState<NutritionalDetails>({
+  const [nutritionalDetails, setNutritionalDetails] = useState({
     size: '',
     calories: '',
     fat: '',
@@ -35,7 +31,6 @@ const CreateProductScreen = () => {
     salt: '',
   });
   const [isOutOfStock, setIsOutOfStock] = useState(false);
-  const [nutritionalDetailsMap, setNutritionalDetailsMap] = useState<{ [key: string]: NutritionalDetails }>({});
 
   useEffect(() => {
     (async () => {
@@ -121,6 +116,7 @@ const CreateProductScreen = () => {
         deleteToken,
       };
 
+      console.log('userID:',userId)
       const response = await createProduct(product);
       if (response) {
         Alert.alert('Product created successfully');
@@ -129,9 +125,8 @@ const CreateProductScreen = () => {
         setPrice({ USD: '', INR: '', EUR: '' });
         setImageUri(null);
         setDeleteToken(null);
-        setNutritionalDetails({ size: '', calories: '',fat:'',carbs:'',proteins: '' , salt: '', });
+        setNutritionalDetails({ size: '', calories: '', fat: '', carbs: '', proteins: '', salt: '' });
         setIsOutOfStock(false);
-        fetchProducts(userId);
       } else {
         Alert.alert('Error creating product');
       }
@@ -140,184 +135,39 @@ const CreateProductScreen = () => {
     }
   };
 
-  const fetchNutritionalDetails = async (nutritionalDetailsId: string) => {
-    try {
-      const response = await getNutritionalDetailsById(nutritionalDetailsId);
-      console.log("response:", response)
-      if (response) {
-        const nutritionalDetailsData: NutritionalDetails = {
-          size: response.size || '',
-          calories: response.calories || '',
-          fat: response.fat || '',
-          carbs: response.carbs || '',
-          proteins: response.proteins || '',
-          salt: response.salt || '',
-        };
-        setNutritionalDetails(nutritionalDetailsData);
-      }
-    } catch (error) {
-      console.log('Error fetching Nutritional Details:', error);
-    }
-  };
-
-  console.log('fetchNutritionalDetails:', fetchNutritionalDetails)
-
-  const fetchProducts = async (userId: string) => {
-    try {
-      const response = await listProducts(userId);
-      if (response) {
-        setProducts(response);
-
-        // Fetch nutritional details for each product
-        const detailsMap: { [key: string]: NutritionalDetails } = {};
-        for (const product of response) {
-          if (product.nutritionalDetailsId) {
-            const detailsResponse = await getNutritionalDetailsById(product.nutritionalDetailsId);
-            if (detailsResponse) {
-              detailsMap[product.$id] = {
-                size: detailsResponse.size || '',
-                calories: detailsResponse.calories || '',
-                fat: detailsResponse.fat || '',
-                carbs: detailsResponse.carbs || '',
-                salt: detailsResponse.salt || '',
-                proteins: detailsResponse.proteins || '',
-              };
-            }
-          }
-        }
-        setNutritionalDetailsMap(detailsMap);
-      }
-    } catch (error) {
-      console.log('Error fetching products:', error);
-    }
-  };
-
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const user = await account.get();
-        if (user) {
-          setUserId(user.$id);
-          fetchProducts(user.$id);
-        }
-      } catch (error) {
-        console.log('Error fetching user:', error);
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
-
   return (
     <ScrollView style={styles.container}>
-      <TextInput
-        placeholder="Name (English)"
-        value={title.en}
-        onChangeText={(text) => setTitle(prev => ({ ...prev, en: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Name (French)"
-        value={title.fr}
-        onChangeText={(text) => setTitle(prev => ({ ...prev, fr: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Name (Polish)"
-        value={title.pl}
-        onChangeText={(text) => setTitle(prev => ({ ...prev, pl: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Name (German)"
-        value={title.de}
-        onChangeText={(text) => setTitle(prev => ({ ...prev, de: text }))}
-        style={styles.input}
-      />
+      {(['en', 'fr', 'pl', 'de'] as Language[]).map((lang) => (
+        <Input
+          key={lang}
+          placeholder={`Name (${lang.toUpperCase()})`}
+          value={title[lang]}
+          onChangeText={(text) => setTitle((prev) => ({ ...prev, [lang]: text }))}
+        />
+      ))}
 
-      <TextInput
-        placeholder="Description (English)"
-        value={details.en}
-        onChangeText={(text) => setDetails(prev => ({ ...prev, en: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Description (French)"
-        value={details.fr}
-        onChangeText={(text) => setDetails(prev => ({ ...prev, fr: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Description (Polish)"
-        value={details.pl}
-        onChangeText={(text) => setDetails(prev => ({ ...prev, pl: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Description (German)"
-        value={details.de}
-        onChangeText={(text) => setDetails(prev => ({ ...prev, de: text }))}
-        style={styles.input}
-      />
+      {(['en', 'fr', 'pl', 'de'] as Language[]).map((lang) => (
+        <Input
+          key={lang}
+          placeholder={`Description (${lang.toUpperCase()})`}
+          value={details[lang]}
+          onChangeText={(text) => setDetails((prev) => ({ ...prev, [lang]: text }))}
+        />
+      ))}
 
-      <TextInput
-        placeholder="Price (USD)"
-        value={price.USD}
-        onChangeText={(text) => setPrice(prev => ({ ...prev, USD: text }))}
-        style={styles.input}
-        keyboardType="numeric"
-      />
-      <TextInput
-        placeholder="Price (INR)"
-        value={price.INR}
-        onChangeText={(text) => setPrice(prev => ({ ...prev, INR: text }))}
-        style={styles.input}
-        keyboardType="numeric"
-      />
-      <TextInput
-        placeholder="Price (EUR)"
-        value={price.EUR}
-        onChangeText={(text) => setPrice(prev => ({ ...prev, EUR: text }))}
-        style={styles.input}
-        keyboardType="numeric"
-      />
+      {(['USD', 'INR', 'EUR'] as Currency[]).map((currency) => (
+        <Input
+          key={currency}
+          placeholder={`Price (${currency})`}
+          value={price[currency]}
+          onChangeText={(text) => setPrice((prev) => ({ ...prev, [currency]: text }))}
+          keyboardType="numeric"
+        />
+      ))}
 
-      <TextInput
-        placeholder="Size"
-        value={nutritionalDetails.size}
-        onChangeText={(text) => setNutritionalDetails(prev => ({ ...prev, size: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Calories"
-        value={nutritionalDetails.calories}
-        onChangeText={(text) => setNutritionalDetails(prev => ({ ...prev, calories: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Fat"
-        value={nutritionalDetails.fat}
-        onChangeText={(text) => setNutritionalDetails(prev => ({ ...prev, fat: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Carbs"
-        value={nutritionalDetails.carbs}
-        onChangeText={(text) => setNutritionalDetails(prev => ({ ...prev, carbs: text }))}
-        style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Proteins"
-        value={nutritionalDetails.proteins}
-        onChangeText={(text) => setNutritionalDetails(prev => ({ ...prev, proteins: text }))}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Salt"
-        value={nutritionalDetails.salt}
-        onChangeText={(text) => setNutritionalDetails(prev => ({ ...prev, salt: text }))}
-        style={styles.input}
+      <NutritionalDetailsForm
+        nutritionalDetails={nutritionalDetails}
+        setNutritionalDetails={setNutritionalDetails}
       />
 
       <View style={styles.switchContainer}>
@@ -337,19 +187,9 @@ const CreateProductScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  nutritionalDetailsContainer: {
-    marginTop: 8,
-  },
   container: {
     flex: 1,
     padding: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 8,
   },
   switchContainer: {
     flexDirection: 'row',
@@ -360,15 +200,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     marginVertical: 12,
-  },
-  productItem: {
-    padding: 16,
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-  },
-  productTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

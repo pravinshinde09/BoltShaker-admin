@@ -1,106 +1,118 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Text, Image, ScrollView, Button, Alert } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Image, Alert, TouchableOpacity } from 'react-native';
 import { useShakes } from '../context/ShakeContext1';
 import { useLanguage } from '../context/LocalizationContext';
-import { useCurrency } from '../context/CurrencyProvider';
+import { useCurrencyContext } from '../context/CurrencyProvider';
 import Typography from './Typography';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { HomeStackParamList } from '../navigation/HomeScreenNavigation';
 import Loading from './Loading';
+import { StyleProps, useTheme } from '../context/ThemeProvider';
+import { SPACING, RADIUS } from '../theme';
 
-const DisplayShakes = () => {
-  const { products, nutritionalDetailsMap , loading} = useShakes();
+// Define your Product and NutritionalDetails interfaces if not imported from elsewhere
+export interface Product {
+  $id: string;
+  title_en: string;
+  title_fr: string;
+  title_de: string;
+  title_pl: string;
+  details_en: string;
+  details_fr: string;
+  details_de: string;
+  details_pl: string;
+  price_USD: number;
+  price_INR: number;
+  price_EUR: number;
+  imageUrl?: string;
+}
+
+export interface NutritionalDetails {
+  size: string;
+  calories: string;
+  fat: string;
+  carbs: string;
+  proteins: string;
+  salt: string;
+}
+
+interface DisplayShakesProps {}
+
+const DisplayShakes: React.FC<DisplayShakesProps> = () => {
+  const { currency, formatPrice } = useCurrencyContext();
   const { locale } = useLanguage();
-  const { currency, formatPrice } = useCurrency();
+  const { colors } = useTheme();
+  const styles = getStyles({ colors });
+  const { products, nutritionalDetailsMap, loading } = useShakes();
+  
+ 
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
 
   const handleEdit = (productId: string) => {
     navigation.navigate('EditProductScreen', { productId });
   };
+
+  const shakeDetails = (productId: string) => {
+    const product = products.find(item => item.$id === productId) as unknown as Product; 
+    if (!product) return;
   
+    navigation.navigate('ShakeFullDetails', {
+      productId,
+      product,
+      nutritionalDetails: nutritionalDetailsMap[productId],
+    });
+  };
+
   const handleDelete = (productId: string) => {
-    // Handle the delete action, e.g., delete the product
     Alert.alert('Delete', `Delete product with ID: ${productId}`);
   };
-if (loading) {
-    return(
-        <Loading/>
-    )
-}
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
-    <ScrollView style={styles.container}>
+    <View>
       {products.map((item) => (
-        <View key={item.$id} style={styles.productCard}>
-          <View style={styles.productCardContent}>
-            <Text style={styles.productTitle}>{item[`title_${locale}`]}</Text>
-            <Text>{item[`details_${locale}`]}</Text>
-            <Typography variant='title04'>
-              {formatPrice(item[`price_${currency}`])}
+        <TouchableOpacity
+          key={item.$id} 
+          style={styles.container}
+          onPress={() => shakeDetails(item.$id)}
+        >
+          {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.imageStyle} />}
+          <View style={styles.content}>
+            <Typography variant="title03">{item[`title_${locale}`]}</Typography>
+            <Typography numberOfLines={2} variant="body02">
+              {item[`details_${locale}`]}
             </Typography>
-            {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.image} />}
-            
-            {nutritionalDetailsMap[item.$id] && (
-              <View style={styles.nutritionalDetailsContainer}>
-                <Text>Size: {nutritionalDetailsMap[item.$id].size}</Text>
-                <Text>Calories: {nutritionalDetailsMap[item.$id].calories}</Text>
-                <Text>Fat: {nutritionalDetailsMap[item.$id].fat}</Text>
-                <Text>Carbs: {nutritionalDetailsMap[item.$id].carbs}</Text>
-                <Text>Proteins: {nutritionalDetailsMap[item.$id].proteins}</Text>
-                <Text>Salt: {nutritionalDetailsMap[item.$id].salt}</Text>
-              </View>
-            )}
-            <View style={styles.buttonContainer}>
-              <Button title="Edit" onPress={() => handleEdit(item.$id)} />
-              <Button title="Delete" onPress={() => handleDelete(item.$id)} color="red" />
-            </View>
+            <Typography variant="title03"> {formatPrice(item[`price_${currency}`])}</Typography>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
-    </ScrollView>
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  productCard: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const getStyles = ({ colors }: StyleProps) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      marginVertical: SPACING.spacing02,
+      gap: SPACING.spacing02,
+      borderRadius: RADIUS.small,
+      backgroundColor: colors.card,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  productCardContent: {
-    padding: 16,
-  },
-  productTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    marginBottom: 8,
-    resizeMode: 'cover',
-    borderRadius: 8,
-  },
-  nutritionalDetailsContainer: {
-    marginTop: 8,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-});
+    imageStyle: {
+      width: 100,
+      height: 100,
+      borderRadius: RADIUS.small,
+      marginRight: SPACING.spacing02,
+      resizeMode: "cover",
+    },
+    content: {
+      flex: 1,
+      padding: SPACING.spacing01,
+    },
+  });
 
 export default DisplayShakes;

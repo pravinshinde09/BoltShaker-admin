@@ -1,28 +1,42 @@
 import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 
-type NutritionalDetails = {
-  [key: string]: string;
-};
+interface NutritionalDetails {
+  size: string;
+  calories: string;
+  fat: string;
+  carbs: string;
+  proteins: string;
+  salt: string;
+}
 
-type Props = {
+interface Props {
   nutritionalDetails: NutritionalDetails;
   setNutritionalDetails: React.Dispatch<React.SetStateAction<NutritionalDetails>>;
-};
+}
 
-const NutritionalDetailsForm: React.FC<Props> = ({ nutritionalDetails, setNutritionalDetails }) => (
-  <View>
-    {Object.keys(nutritionalDetails).map((key) => (
-      <TextInput
-        key={key}
-        placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
-        value={nutritionalDetails[key]}
-        onChangeText={(text) => setNutritionalDetails((prev) => ({ ...prev, [key]: text }))}
-        style={styles.input}
-      />
-    ))}
-  </View>
-);
+const NutritionalDetailsForm: React.FC<Props> = ({ nutritionalDetails, setNutritionalDetails }) => {
+  const handleChange = (key: keyof NutritionalDetails, text: string) => {
+    setNutritionalDetails((prev) => ({
+      ...prev,
+      [key]: text,
+    }));
+  };
+
+  return (
+    <View>
+      {Object.keys(nutritionalDetails).map((key) => (
+        <TextInput
+          key={key}
+          placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
+          value={nutritionalDetails[key as keyof NutritionalDetails]}
+          onChangeText={(text) => handleChange(key as keyof NutritionalDetails, text)}
+          style={styles.input}
+        />
+      ))}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   input: {

@@ -1,5 +1,5 @@
 export type ColorCodes = 'primary' | 'primary100' | 'primary200' | 'secondary' | 'gray' | 'gray100' | 'white' | 'black' | 'black100'
-    | 'black200' | 'black300' | 'transparentBlack' | 'background' | 'card' | 'text' | 'icon' | 'inputBox' | 'shadowColor';
+    | 'black200' | 'black300' | 'transparentBlack' | 'background' | 'card' | 'text' | 'icon' | 'inputBox' | 'shadowColor' | 'shakeDetailsCard';
 
 const lightColors: Record<ColorCodes, string> = {
     primary: '#FC3D0A',
@@ -20,6 +20,7 @@ const lightColors: Record<ColorCodes, string> = {
     icon: "#000000",
     inputBox: '#fff',
     shadowColor: 'rgba(0, 0, 0, 0.5)',
+    shakeDetailsCard: '#dedede'
 }
 
 
@@ -41,7 +42,8 @@ const darkColors: Record<ColorCodes, string> = {
     text: '#fff',
     icon: "#fff",
     inputBox: "#242526",
-    shadowColor: '#dedede'
+    shadowColor: '#dedede',
+    shakeDetailsCard: "#29232f"
 }
 
 export const COLORS = {

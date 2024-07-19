@@ -29,5 +29,14 @@
   "retry_in": "Nie otrzymałeś/aś? Spróbuj ponownie za",
   "resend_otp": "Wyślij kod OTP ponownie",
   "second": "sekunda",
-  "seconds": "sekundy"
+  "seconds": "sekundy",
+  "shake_details": "Szczegóły shake'a",
+  "nutrition_facts": "Wartości odżywcze",
+  "amount_per_serving": "Ilość na porcję",
+  "serving_size": "Wielkość porcji",
+  "calories": "Kalorie",
+  "fat": "Tłuszcz",
+  "carbs": "Węglowodany",
+  "protein": "Białko",
+  "salt": "Sól"
 }

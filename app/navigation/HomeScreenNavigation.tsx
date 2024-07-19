@@ -16,6 +16,8 @@ import { RADIUS } from "../theme";
 import MyQRCode from "../components/MyQRCode";
 import CreateShake from "../components/CreateShake";
 import EditProductScreen from "../components/EditShake";
+import ShakeFullDetails from "../components/ShakeFullDetails";
+import { NutritionalDetails, Product } from "../components/DisplayShake";
 
 export type HomeStackParamList = {
   Home: undefined;
@@ -47,6 +49,11 @@ export type HomeStackParamList = {
   CreateShake: undefined;
   EditProductScreen: {
     productId:string
+  };
+  ShakeFullDetails: {
+    productId:string,
+    product:Product,
+    nutritionalDetails:NutritionalDetails
   }
 
 };
@@ -133,6 +140,15 @@ const HomeScreenNavigation = () => {
        <Stack.Screen
         name="EditProductScreen"
         component={EditProductScreen}
+      />
+      <Stack.Screen
+        name="ShakeFullDetails"
+        component={ShakeFullDetails}
+        options={{
+          headerTitle: '',
+          headerShown: true,
+          headerTransparent: true
+        }}
       />
     </Stack.Navigator>
   );

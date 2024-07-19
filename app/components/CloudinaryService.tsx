@@ -1,3 +1,5 @@
+import { Alert } from "react-native";
+
 const FILE_EXTENSION_REGEX = /\.(\w+)$/;
 
 const CLOUDINARY_URL = process.env.EXPO_PUBLIC_CLOUDINARY_URL!;
@@ -40,19 +42,39 @@ export const uploadImage = async (pickerResult: any) => {
   return data;
 };
 
+// export const deleteImage = async (deleteToken: string) => {
+//   const response = await fetch(DELETE_TOKEN, {
+//     method: 'POST',
+//     body: JSON.stringify({ token: deleteToken }),
+//     headers: {
+//         'Content-Type': 'application/json',
+//     },
+// });
+//   console.log('respo:', response)
+
+//   if (!response.ok) {
+//     throw new Error('Delete failed');
+//   }
+
+//   return await response.json();
+// };
+
+
 export const deleteImage = async (deleteToken: string) => {
-  const response = await fetch(DELETE_TOKEN, {
-    method: 'POST',
-    body: JSON.stringify({ token: deleteToken }),
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-  console.log('respo:', response)
+  try {
+      const response = await fetch(DELETE_TOKEN, {
+          method: 'POST',
+          body: JSON.stringify({ token: deleteToken }),
+          headers: {
+              'Content-Type': 'application/json',
+          },
+      });
 
-  if (!response.ok) {
-    throw new Error('Delete failed');
+      if (!response.ok) {
+          throw new Error('Failed to delete old image');
+      }
+  } catch (error) {
+      console.error('Error deleting old Image:', error);
+      Alert.alert('Failed to delete old Image', 'An error occurred while deleting your old avatar');
   }
-
-  return await response.json();
 };

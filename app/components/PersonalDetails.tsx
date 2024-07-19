@@ -9,6 +9,7 @@ import Typography from "../components/Typography";
 import Input from "./TextInput";
 import { useLanguage } from '../context/LocalizationContext';
 import { StyleProps, useTheme } from "../context/ThemeProvider";
+import { deleteImage } from "./CloudinaryService";
 
 const CLOUDINARY_URL = process.env.EXPO_PUBLIC_CLOUDINARY_URL!;
 const UPLOAD_PRESET = process.env.EXPO_PUBLIC_UPLOAD_PRESET_ID!;
@@ -120,7 +121,7 @@ const PersonalDetails = ({ userData, onUpdateProfile }: Props) => {
                 formData.append('upload_preset', UPLOAD_PRESET);
 
                 if (user.deleteToken) {
-                    await deleteOldAvatar(user.deleteToken);
+                    await deleteImage(user.deleteToken);
                 }
 
                 const response = await fetch(CLOUDINARY_URL, {
@@ -156,24 +157,24 @@ const PersonalDetails = ({ userData, onUpdateProfile }: Props) => {
         }
     };
 
-    const deleteOldAvatar = async (deleteToken: string) => {
-        try {
-            const response = await fetch(DELETE_TOKEN, {
-                method: 'POST',
-                body: JSON.stringify({ token: deleteToken }),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+    // const deleteOldAvatar = async (deleteToken: string) => {
+    //     try {
+    //         const response = await fetch(DELETE_TOKEN, {
+    //             method: 'POST',
+    //             body: JSON.stringify({ token: deleteToken }),
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //         });
 
-            if (!response.ok) {
-                throw new Error('Failed to delete old avatar');
-            }
-        } catch (error) {
-            console.error('Error deleting old avatar:', error);
-            Alert.alert('Failed to delete old avatar', 'An error occurred while deleting your old avatar');
-        }
-    };
+    //         if (!response.ok) {
+    //             throw new Error('Failed to delete old avatar');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error deleting old avatar:', error);
+    //         Alert.alert('Failed to delete old avatar', 'An error occurred while deleting your old avatar');
+    //     }
+    // };
 
     const { translate } = useLanguage();
 

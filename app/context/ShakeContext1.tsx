@@ -13,6 +13,7 @@ type NutritionalDetails = {
 };
 
 type ContextType = {
+  userId: string;
   products: Models.Document[];
   nutritionalDetailsMap: { [key: string]: NutritionalDetails };
   fetchProducts: () => void;
@@ -82,16 +83,16 @@ const ShakesProvider1 = ({ children }: any) => {
     } catch (error) {
       console.log('Error fetching products:', error);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchProducts();
-  },[]);
+  }, []);
 
-console.log(`Product:`, products)
   const contextValues: ContextType = {
+    userId,
     products,
     nutritionalDetailsMap,
     fetchProducts,

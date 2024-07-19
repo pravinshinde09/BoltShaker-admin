@@ -29,5 +29,14 @@
   "retry_in": "Nicht erhalten? Versuchen Sie es erneut in",
   "resend_otp": "OTP erneut senden",
   "second": "Sekunde",
-  "seconds": "Sekunden"
+  "seconds": "Sekunden",
+  "shake_details": "Shake-Details",
+  "nutrition_facts": "Nährwertangaben",
+  "amount_per_serving": "Menge pro Portion",
+  "serving_size": "Portionsgröße",
+  "calories": "Kalorien",
+  "fat": "Fett",
+  "carbs": "Kohlenhydrate",
+  "protein": "Eiweiß",
+  "salt": "Salz"
 }
